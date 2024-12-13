@@ -67,28 +67,45 @@ export default class FruitDrop extends Game {
    * @returns true if the game should continue
    */
   public update(elapsed: number): boolean {
-    this.timeLeft -= elapsed;
+    this.updateTimer(elapsed);
+    this.updateItems(elapsed);
+    this.updatePlayer(elapsed);
+    this.handleCollisions();
+    this.spawnNewItems(elapsed);
 
+    return !this.isGameOver();
+  }
+
+  private updateTimer(elapsed: number): void {
+    this.timeLeft -= elapsed;
+  }
+
+  private updateItems(elapsed: number): void {
     for (let i: number = 0; i < this.items.length; i++) {
       this.items[i].update(elapsed);
     }
-    this.player.update(elapsed);
+  }
 
-    this.items = this.items.filter((items: ScoreItem) => {
-      if (this.player.isCollidingItem(items)) {
-        this.score += items.getScore();
+  private updatePlayer(elapsed: number): void {
+    this.player.update(elapsed);
+  }
+
+  private handleCollisions(): void {
+    this.items = this.items.filter((item: ScoreItem) => {
+      if (this.player.isCollidingItem(item)) {
+        this.score += item.getScore();
         return false;
       }
-      return (items.getPosY() < this.canvas.height);
+      return item.getPosY() < this.canvas.height;
     });
+  }
 
+  private spawnNewItems(elapsed: number): void {
     this.timeToNextItem -= elapsed;
     if (this.timeToNextItem < 0) {
       this.makeItem();
       this.timeToNextItem = Math.random() * 200;
     }
-
-    return !this.isGameOver();
   }
 
   /**
